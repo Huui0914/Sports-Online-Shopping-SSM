@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/context 
+	http://www.springframework.org/schema/context/spring-context.xsd 
+	http://www.springframework.org/schema/mvc 
+	http://www.springframework.org/schema/mvc/spring-mvc.xsd 
+	http://www.springframework.org/schema/aop 
+	http://www.springframework.org/schema/aop/spring-aop.xsd 
+	http://www.springframework.org/schema/tx 
+	http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+	<!-- 1.配置Spring容器 -->
+	<!-- 启用自动扫描，@Component、@Service、@Repository 和 @Controller，并将它们自动注册为 Spring 的 bean。 -->
+	<context:component-scan base-package="com"></context:component-scan>
+	<!-- 启用 Spring MVC 注解驱动 -->
+	<mvc:annotation-driven />
+	<!-- 启用对基于注解的配置支持：采用注释的方式配置bean -->
+	<context:annotation-config />
+	<!-- 启用基于 AspectJ 的 AOP 代理支持：proxy-target-class="true"强制使用cglib代理 如果为false则spring会自动选择 -->
+	<aop:aspectj-autoproxy proxy-target-class="true" />
+
+	<!-- 2.配置数据源 -->
+	<bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
+		<!-- 数据库连接字符串 -->
+		<property name="url" value="jdbc:mysql://localhost:3306/ssm_project?characterEncoding=utf8" />
+		<!-- 数据库用户名 -->
+		<property name="username" value="root" />
+		<!-- 数据库密码 -->
+		<property name="password" value="" />
+		<!-- 最大连接数 -->
+		<property name="maxTotal" value="80" />
+		<!-- 最大空闲连接数 -->
+		<property name="maxIdle" value="10" />
+		<!-- 初始化连接数 -->
+		<property name="initialSize" value="5" />
+	</bean>
+
+	<!-- 3.配置mybaits会话工厂：SqlSessionFactoryBean -->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<!-- 配置数据源 -->
+		<property name="dataSource" ref="dataSource" />
+		<!--配置别名以及mapper.xml配置-->
+		<property name="configLocation" value="classpath:mybatis.xml"></property>
+		<!-- 扫描entity包 使用别名 -->
+		<property name="typeAliasesPackage" value="com.entity" />
+	</bean>
+
+	<!-- 配置扫描DAO接口包，动态实现DAO接口，注入到spring容器中 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<!-- 注入sqlSessionFactory -->
+		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" />
+		<!-- 给出需要扫描DAO接口包 -->
+		<property name="basePackage" value="com.dao" />
+	</bean>
+
+	<!-- 配置SqlSessionTemplate -->
+	<bean id="sqlSessionTemplate" class="org.mybatis.spring.SqlSessionTemplate">
+		<constructor-arg name="sqlSessionFactory" ref="sqlSessionFactory" />
+	</bean>
+
+	<!-- 4.数据库的事务配置 -->
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<!-- 注入数据源 -->
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	<!-- 使用annotation注解方式配置事务 -->
+	<tx:annotation-driven transaction-manager="transactionManager" />
+
+	<!-- 5.配置视图解析 -->
+	<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<!-- 这里的配置是自动给后面action的方法return的字符串加上前缀和后缀，变成一个 可用的url地址 -->
+		<property name="prefix" value="/" />
+		<property name="suffix" value=".jsp" />
+	</bean>
+
+	<!-- 6.支持上传文件 -->
+	<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<property name="maxUploadSize" value="104857600" /><!-- 设置文件上传的最大大小 -->
+		<property name="maxInMemorySize" value="4096" /><!-- 设置文件上传的最大缓冲区 -->
+		<property name="defaultEncoding" value="UTF-8"></property>
+	</bean>
+
+</beans>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
